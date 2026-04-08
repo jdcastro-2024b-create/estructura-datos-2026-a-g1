@@ -25,7 +25,7 @@ public class Ejemplo1 {
         Integer[] documento = new Integer[cantidadEstudiante];
         String[] nombre = new String[cantidadEstudiante];
         String[] correo = new String[cantidadEstudiante];
-        String[] tipoDcumentoPermitodo = {"CC", "CE", "TI", "PA", "DNI", "RUT"};
+        String[] tipoDcumentoPermitodo = {"CC", "CE", "TI", "PA", "DNI", "RUT", "NIT"};
         // tipoDocumento[0] = "CC";
         // documento[0] = 123456789;
         // nombre[0] = "Juan Perez";
@@ -33,24 +33,46 @@ public class Ejemplo1 {
 
         int i = 0;
         int j = 0;
+        
 
         for(i=0; i<tipoDocumento.length; i++){
-            //Datos permitidos: Depende de la data del array tipoDcumentoPermitodo
+            /*
+                1. Datos permitidos: Depende de la data del array tipoDcumentoPermitodo
+                2. Validar que el número este entre 0 y tipoDcumentoPermitodo.length, para que elija un tipo de documento permitido
+                    Nota: 
+                        - El usuario, agraga del 1 al tipoDcumentoPermitodo.length + 1, para que el programa sea legible.
+                        - El programa internamente, resta 1 al número ingresado.
+                3. Si no esta en el rango, volve a preguntar hasta que elija un tipo de documento permitido
+            */
             System.out.print("Ingrese el tipo de documento del estudiante " + (i+1)+ ": ");
             for(j=0; j<tipoDcumentoPermitodo.length; j++){
                 System.out.print("("+(j+1)+"=>" + tipoDcumentoPermitodo[j]+") ");
             }
             System.out.print(": ");
-            tipoDocumento[i] = scanner.next();
 
-            System.out.print("Ingrese el número de documento del estudiante " + (i+1) + ": ");
-            documento[i] = scanner.nextInt();
+            int pos = -1; // Variable para almacenar la posición del tipo de documento seleccionado
+            while(pos<0 || pos>=tipoDcumentoPermitodo.length){
+                pos = scanner.nextInt();
+                pos--; // Restar 1 para convertir a índice de array
+                if (pos < 0 || pos >= tipoDcumentoPermitodo.length) {
+                   System.out.print("Error en el dato ingresado. Por favor, ingrese un número entre 1 y " + tipoDcumentoPermitodo.length+", ingresar de nuevo el dato: "); 
+                }else{
+                    tipoDocumento[i] = tipoDcumentoPermitodo[pos]; // Asignar el tipo de documento seleccionado al array
+                }
+            }
 
-            System.out.print("Ingrese el nombre del estudiante " + (i+1) + ": ");
-            nombre[i] = scanner.next();
+            
+            
 
-            System.out.print("Ingrese el correo del estudiante " + (i+1) + ": ");
-            correo[i] = scanner.next();
+            // System.out.print("Ingrese el número de documento del estudiante " + (i+1) + ": ");
+            // documento[i] = scanner.nextInt();
+
+            // System.out.print("Ingrese el nombre del estudiante " + (i+1) + ": ");
+            // nombre[i] = scanner.next();
+
+            // System.out.print("Ingrese el correo del estudiante " + (i+1) + ": ");
+            // correo[i] = scanner.next();
+            System.out.println("Programa ejecutado correctamente");
 
         }
 
