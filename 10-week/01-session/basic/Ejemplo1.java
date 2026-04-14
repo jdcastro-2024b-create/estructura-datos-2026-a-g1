@@ -52,13 +52,18 @@ public class Ejemplo1 {
 
             int pos = -1; // Variable para almacenar la posición del tipo de documento seleccionado
             while(pos<0 || pos>=tipoDcumentoPermitodo.length){
-                pos = scanner.nextInt();
-                pos--; // Restar 1 para convertir a índice de array
-                if (pos < 0 || pos >= tipoDcumentoPermitodo.length) {
-                   System.out.print("Error en el dato ingresado. Por favor, ingrese un número entre 1 y " + tipoDcumentoPermitodo.length+", ingresar de nuevo el dato: "); 
-                }else{
-                    tipoDocumento[i] = tipoDcumentoPermitodo[pos]; // Asignar el tipo de documento seleccionado al array
-                }
+                try {
+                    pos = scanner.nextInt(); // Leer la posición ingresada por el usuario
+                    pos--; // Restar 1 para convertir a índice de array
+                    if (pos < 0 || pos >= tipoDcumentoPermitodo.length) {
+                    System.out.print("Error en el dato ingresado. Por favor, ingrese un número entre 1 y " + tipoDcumentoPermitodo.length+", ingresar de nuevo el dato: "); 
+                    }else{
+                        tipoDocumento[i] = tipoDcumentoPermitodo[pos]; // Asignar el tipo de documento seleccionado al array
+                    }
+                } catch (Exception e) {
+                   System.out.println("Dato no válido: "); 
+                   pos = -1; // Reiniciar la posición para volver a solicitar el dato
+                }                
             }
 
             
