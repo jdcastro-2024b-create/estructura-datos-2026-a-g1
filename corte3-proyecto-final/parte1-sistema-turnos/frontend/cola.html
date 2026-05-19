@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Cola FIFO</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        :root { --blue:#2457c5; --green:#0f8f63; --amber:#b7791f; --red:#c92a2a; --ink:#172033; --muted:#657084; --line:#d9e1ee; --bg:#f4f7fb; --paper:#fff; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--ink); }
+        header { height: 62px; display: flex; align-items: center; gap: 18px; padding: 0 28px; background: var(--paper); border-bottom: 1px solid var(--line); }
+        header a { color: var(--blue); text-decoration: none; font-weight: 700; }
+        main { max-width: 1180px; margin: 0 auto; padding: 28px 20px 44px; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+        .stat, .card { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 20px; }
+        .stat b { display: block; font-size: 2.1rem; margin-bottom: 6px; }
+        .stat span, p { color: var(--muted); line-height: 1.5; }
+        .layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; }
+        h1 { font-size: 1.35rem; margin: 0; }
+        h2 { margin: 0 0 14px; font-size: 1.1rem; }
+        .queue { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; min-height: 88px; }
+        .node { border: 2px solid var(--blue); background: #eef4ff; border-radius: 8px; min-width: 112px; padding: 12px; text-align: center; }
+        .node small { color: var(--muted); display: block; margin-top: 4px; }
+        .arrow { color: var(--muted); font-weight: 700; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 9px; border-bottom: 1px solid var(--line); text-align: left; font-size: .92rem; }
+        th { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: .75rem; font-weight: 700; }
+        .PENDIENTE { background: #fff4db; color: var(--amber); }
+        .EN_ATENCION { background: #e8f0ff; color: var(--blue); }
+        .ATENDIDO { background: #dff7ec; color: var(--green); }
+        .CANCELADO { background: #ffe3e3; color: var(--red); }
+        @media (max-width: 850px) { .grid, .layout { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<header>
+    <a href="index.html">Inicio</a>
+    <h1>Dashboard de cola FIFO</h1>
+</header>
+<main>
+    <section class="grid">
+        <div class="stat"><b id="pendientes">0</b><span>Pendientes</span></div>
+        <div class="stat"><b id="enAtencion">0</b><span>En atencion</span></div>
+        <div class="stat"><b id="atendidos">0</b><span>Atendidos</span></div>
+        <div class="stat"><b id="cancelados">0</b><span>Cancelados</span></div>
+    </section>
+
+    <section class="layout">
+        <div class="card">
+            <h2>Representacion de la cola</h2>
+            <div id="queue" class="queue"></div>
+        </div>
+        <div class="card">
+            <h2>Analisis algorimico</h2>
+            <p><strong>Encolar:</strong> O(1), porque se agrega al final.</p>
+            <p><strong>Ver frente:</strong> O(1) conceptual; la base usa indice y orden por fecha.</p>
+            <p><strong>Desencolar:</strong> O(1) conceptual; cambia el estado del primer pendiente.</p>
+            <p><strong>Cancelar:</strong> O(n) en una cola pura, porque puede estar en cualquier posicion.</p>
+        </div>
+    </section>
+
+    <section class="card" style="margin-top:18px">
+        <h2>Historial de turnos</h2>
+        <table>
+            <thead><tr><th>Codigo</th><th>Usuario</th><th>Estado</th><th>Fecha</th></tr></thead>
+            <tbody id="tabla"><tr><td colspan="4">Cargando...</td></tr></tbody>
+        </table>
+    </section>
+</main>
+<script>
+const API = "http://localhost:8080";
+
+async function cargar() {
+    try {
+        const [statsRes, turnosRes] = await Promise.all([
+            axios.get(`${API}/turnos/estadisticas`),
+            axios.get(`${API}/turnos`)
+        ]);
+        const s = statsRes.data;
+        pendientes.textContent = s.pendientes ?? 0;
+        enAtencion.textContent = s.enAtencion ?? 0;
+        atendidos.textContent = s.atendidos ?? 0;
+        cancelados.textContent = s.cancelados ?? 0;
+
+        const turnos = turnosRes.data.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion));
+        const activos = turnos.filter(t => t.estado === "PENDIENTE");
+        queue.innerHTML = activos.length
+            ? activos.map((t, i) => `<div class="node"><strong>${t.codigo}</strong><small>${i === 0 ? "Frente" : "Posicion " + (i + 1)}</small></div>${i < activos.length - 1 ? '<span class="arrow">></span>' : ""}`).join("")
+            : "<p>No hay turnos pendientes.</p>";
+
+        tabla.innerHTML = turnos.length
+            ? turnos.map(t => `<tr><td>${t.codigo}</td><td>${t.usuario?.nombre || "-"}</td><td><span class="badge ${t.estado}">${t.estado.replace("_", " ")}</span></td><td>${new Date(t.fechaCreacion).toLocaleString("es-CO")}</td></tr>`).join("")
+            : '<tr><td colspan="4">No hay registros.</td></tr>';
+    } catch (error) {
+        queue.innerHTML = "<p>No se pudo conectar con el backend. Ejecuta Spring Boot en http://localhost:8080.</p>";
+        tabla.innerHTML = '<tr><td colspan="4">Sin conexion.</td></tr>';
+    }
+}
+cargar();
+setInterval(cargar, 15000);
+</script>
+</body>
+</html>

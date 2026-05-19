@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turnos - Cola FIFO</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        :root { --blue:#2457c5; --green:#0f8f63; --amber:#b7791f; --red:#c92a2a; --ink:#172033; --muted:#657084; --line:#d9e1ee; --bg:#f4f7fb; --paper:#fff; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--ink); }
+        header { height: 62px; display: flex; align-items: center; gap: 18px; padding: 0 28px; background: var(--paper); border-bottom: 1px solid var(--line); }
+        header a { color: var(--blue); text-decoration: none; font-weight: 700; }
+        main { max-width: 1160px; margin: 0 auto; padding: 28px 20px 44px; }
+        h1 { margin: 0; font-size: 1.35rem; }
+        h2 { margin: 0 0 14px; font-size: 1.1rem; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+        .stat, .card { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 20px; }
+        .stat b { display: block; font-size: 2rem; }
+        .layout { display: grid; grid-template-columns: .85fr 1.15fr; gap: 18px; }
+        select, button { width: 100%; padding: 11px 12px; border-radius: 6px; font-size: .95rem; }
+        select { border: 1px solid var(--line); background: white; margin-bottom: 10px; }
+        button { border: 0; cursor: pointer; font-weight: 700; margin-bottom: 8px; }
+        .primary { background: var(--blue); color: white; } .green { background: var(--green); color: white; } .amber { background: var(--amber); color: white; }
+        .danger { background: #ffe3e3; color: var(--red); width: auto; padding: 7px 10px; }
+        .success { background: #dff7ec; color: var(--green); width: auto; padding: 7px 10px; }
+        .front { border: 2px solid var(--blue); background: #eef4ff; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 14px; }
+        .front strong { font-size: 2rem; display: block; color: var(--blue); }
+        .alert { display:none; margin-bottom: 16px; padding: 12px 14px; border-radius: 6px; background: #edf2fb; color: var(--blue); }
+        .item { display: grid; grid-template-columns: 58px 90px 1fr auto auto; gap: 10px; align-items: center; border-bottom: 1px solid var(--line); padding: 12px 0; }
+        .badge { padding: 5px 8px; border-radius: 6px; font-size: .75rem; font-weight: 700; }
+        .PENDIENTE { background:#fff4db; color:var(--amber); } .EN_ATENCION { background:#e8f0ff; color:var(--blue); }
+        .ATENDIDO { background:#dff7ec; color:var(--green); } .CANCELADO { background:#ffe3e3; color:var(--red); }
+        @media (max-width: 850px) { .stats, .layout, .item { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<header><a href="index.html">Inicio</a><h1>Cola de turnos FIFO</h1></header>
+<main>
+    <div id="alerta" class="alert"></div>
+    <section class="stats">
+        <div class="stat"><b id="pendientes">0</b><span>Pendientes</span></div>
+        <div class="stat"><b id="enAtencion">0</b><span>En atencion</span></div>
+        <div class="stat"><b id="atendidos">0</b><span>Atendidos</span></div>
+        <div class="stat"><b id="cancelados">0</b><span>Cancelados</span></div>
+    </section>
+    <section class="layout">
+        <div>
+            <div class="card" style="margin-bottom:18px">
+                <h2>Solicitar turno</h2>
+                <select id="usuarios"><option value="">Seleccionar usuario</option></select>
+                <button class="primary" onclick="encolar()">Agregar a la cola</button>
+            </div>
+            <div class="card">
+                <h2>Control de cola</h2>
+                <div id="frente" class="front"><strong>-</strong><span>Sin turnos pendientes</span></div>
+                <button class="green" onclick="llamarSiguiente()">Llamar siguiente</button>
+                <button class="amber" onclick="cargarTodo()">Actualizar</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Turnos registrados</h2>
+            <div id="lista">Cargando...</div>
+        </div>
+    </section>
+</main>
+<script>
+const API = "http://localhost:8080";
+
+async function cargarTodo() { await Promise.all([cargarUsuarios(), cargarTurnos(), cargarEstadisticas(), cargarFrente()]); }
+async function cargarUsuarios() {
+    try {
+        const res = await axios.get(`${API}/usuarios`);
+        usuarios.innerHTML = '<option value="">Seleccionar usuario</option>' + res.data.map(u => `<option value="${u.id}">${u.nombre} (${u.correo})</option>`).join("");
+    } catch {}
+}
+async function cargarEstadisticas() {
+    try {
+        const s = (await axios.get(`${API}/turnos/estadisticas`)).data;
+        pendientes.textContent = s.pendientes ?? 0; enAtencion.textContent = s.enAtencion ?? 0; atendidos.textContent = s.atendidos ?? 0; cancelados.textContent = s.cancelados ?? 0;
+    } catch {}
+}
+async function cargarFrente() {
+    try {
+        const res = await axios.get(`${API}/turnos/frente`);
+        const t = res.data;
+        frente.innerHTML = t?.codigo ? `<strong>${t.codigo}</strong><span>${t.usuario?.nombre || "-"}</span>` : "<strong>-</strong><span>Sin turnos pendientes</span>";
+    } catch {}
+}
+async function cargarTurnos() {
+    try {
+        const orden = { PENDIENTE: 0, EN_ATENCION: 1, ATENDIDO: 2, CANCELADO: 3 };
+        const turnos = (await axios.get(`${API}/turnos`)).data.sort((a, b) => orden[a.estado] - orden[b.estado] || new Date(a.fechaCreacion) - new Date(b.fechaCreacion));
+        let pos = 1;
+        lista.innerHTML = turnos.length ? turnos.map(t => {
+            const pendiente = t.estado === "PENDIENTE";
+            return `<div class="item"><span>${pendiente ? "#" + pos++ : "-"}</span><strong>${t.codigo}</strong><span>${t.usuario?.nombre || "-"}</span><span class="badge ${t.estado}">${t.estado.replace("_", " ")}</span><span>${pendiente ? `<button class="danger" onclick="cancelar(${t.id})">Cancelar</button>` : ""}${t.estado === "EN_ATENCION" ? `<button class="success" onclick="completar(${t.id})">Completar</button>` : ""}</span></div>`;
+        }).join("") : "No hay turnos registrados.";
+    } catch { lista.innerHTML = "No se pudo conectar con el backend."; }
+}
+async function encolar() {
+    if (!usuarios.value) return mostrar("Selecciona un usuario.");
+    try { const r = await axios.post(`${API}/turnos/encolar/${usuarios.value}`); mostrar(`Turno ${r.data.codigo} agregado.`); cargarTodo(); }
+    catch (e) { mostrar(e.response?.data?.error || "Error al encolar."); }
+}
+async function llamarSiguiente() {
+    try { const r = await axios.put(`${API}/turnos/siguiente`); mostrar(`Turno ${r.data.codigo} en atencion.`); cargarTodo(); }
+    catch (e) { mostrar(e.response?.data?.error || "No hay pendientes."); }
+}
+async function completar(id) { try { await axios.put(`${API}/turnos/${id}/completar`); mostrar("Turno completado."); cargarTodo(); } catch(e) { mostrar(e.response?.data?.error || "Error."); } }
+async function cancelar(id) { if (confirm("Cancelar este turno?")) try { await axios.put(`${API}/turnos/${id}/cancelar`); mostrar("Turno cancelado."); cargarTodo(); } catch(e) { mostrar(e.response?.data?.error || "Error."); } }
+function mostrar(msg) { alerta.textContent = msg; alerta.style.display = "block"; setTimeout(() => alerta.style.display = "none", 3500); }
+cargarTodo();
+setInterval(cargarTodo, 30000);
+</script>
+</body>
+</html>

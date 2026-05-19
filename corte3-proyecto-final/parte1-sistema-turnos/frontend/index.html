@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Turnos Universitario</title>
+    <style>
+        :root {
+            --ink: #172033;
+            --muted: #657084;
+            --blue: #2457c5;
+            --green: #0f8f63;
+            --amber: #b7791f;
+            --line: #d9e1ee;
+            --paper: #ffffff;
+            --bg: #f4f7fb;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; color: var(--ink); background: var(--bg); }
+        header {
+            height: 64px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between;
+            background: var(--paper); border-bottom: 1px solid var(--line);
+        }
+        header strong { color: var(--blue); }
+        main { max-width: 1120px; margin: 0 auto; padding: 34px 22px 48px; }
+        .hero {
+            display: grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items: stretch; margin-bottom: 26px;
+        }
+        .hero-text, .panel {
+            background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 28px;
+        }
+        h1 { margin: 0 0 12px; font-size: clamp(1.9rem, 4vw, 3rem); line-height: 1.06; }
+        h2 { margin: 0 0 14px; font-size: 1.2rem; }
+        p { line-height: 1.55; color: var(--muted); }
+        .tag { display: inline-block; padding: 6px 10px; border-radius: 6px; background: #e8f0ff; color: var(--blue); font-weight: 700; font-size: .82rem; }
+        .queue-demo { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
+        .queue-demo span { padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: #f9fbff; font-weight: 700; }
+        .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+        .card {
+            background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 22px;
+            text-decoration: none; color: var(--ink); min-height: 168px;
+        }
+        .card:hover { border-color: var(--blue); box-shadow: 0 10px 24px rgba(36, 87, 197, .10); }
+        .card span { display: inline-block; margin-top: 12px; color: var(--blue); font-weight: 700; }
+        dl { display: grid; grid-template-columns: auto 1fr; gap: 10px 14px; margin: 0; }
+        dt { font-weight: 700; color: var(--ink); }
+        dd { margin: 0; color: var(--muted); }
+        @media (max-width: 780px) {
+            header { padding: 0 18px; }
+            .hero, .cards { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div><strong>Sistema de Turnos</strong> | Estructura de Datos</div>
+    <small>Spring Boot + MySQL + HTML + Axios</small>
+</header>
+<main>
+    <section class="hero">
+        <div class="hero-text">
+            <span class="tag">Cola FIFO</span>
+            <h1>Gestion de turnos para atencion universitaria</h1>
+            <p>Aplicacion funcional que organiza solicitudes de atencion con una cola. El primer usuario que solicita turno es el primero en ser llamado, permitiendo registrar, consultar, cancelar y completar atenciones.</p>
+            <div class="queue-demo" aria-label="Ejemplo de cola">
+                <span>Frente</span><span>T-001</span><span>T-002</span><span>T-003</span><span>Final</span>
+            </div>
+        </div>
+        <aside class="panel">
+            <h2>Problema real</h2>
+            <p>En una oficina universitaria los estudiantes pueden llegar en distinto orden y solicitar atencion. Sin una cola clara, se generan confusiones, duplicidad de solicitudes y poca trazabilidad del proceso.</p>
+            <dl>
+                <dt>Entrada</dt><dd>Usuarios registrados y solicitudes de turno.</dd>
+                <dt>Proceso</dt><dd>Encolar, consultar frente, desencolar y finalizar.</dd>
+                <dt>Salida</dt><dd>Cola ordenada, estados y estadisticas.</dd>
+            </dl>
+        </aside>
+    </section>
+
+    <section class="cards">
+        <a class="card" href="usuarios.html">
+            <h2>Usuarios</h2>
+            <p>CRUD de personas que pueden solicitar turnos.</p>
+            <span>Abrir modulo</span>
+        </a>
+        <a class="card" href="turnos.html">
+            <h2>Turnos</h2>
+            <p>Operaciones de cola: enqueue, peek, dequeue, cancelar y completar.</p>
+            <span>Abrir modulo</span>
+        </a>
+        <a class="card" href="cola.html">
+            <h2>Dashboard</h2>
+            <p>Panel visual para evidenciar estadisticas, orden FIFO y complejidad.</p>
+            <span>Abrir panel</span>
+        </a>
+    </section>
+</main>
+</body>
+</html>

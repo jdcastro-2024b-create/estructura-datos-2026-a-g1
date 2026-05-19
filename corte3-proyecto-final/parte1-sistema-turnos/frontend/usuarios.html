@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios - Sistema de Turnos</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        :root { --blue:#2457c5; --green:#0f8f63; --red:#c92a2a; --ink:#172033; --muted:#657084; --line:#d9e1ee; --bg:#f4f7fb; --paper:#fff; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--ink); }
+        header { height: 62px; display: flex; align-items: center; gap: 18px; padding: 0 28px; background: var(--paper); border-bottom: 1px solid var(--line); }
+        header a { color: var(--blue); text-decoration: none; font-weight: 700; }
+        main { max-width: 1080px; margin: 0 auto; padding: 28px 20px 44px; }
+        .card { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 22px; margin-bottom: 18px; }
+        h1 { margin: 0; font-size: 1.35rem; }
+        h2 { margin: 0 0 16px; font-size: 1.1rem; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        label { display: block; font-size: .85rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+        input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: .95rem; }
+        button { border: 0; border-radius: 6px; padding: 10px 14px; cursor: pointer; font-weight: 700; }
+        .primary { background: var(--blue); color: white; }
+        .secondary { background: #edf2fb; color: var(--blue); }
+        .danger { background: #ffe3e3; color: var(--red); }
+        .success { background: #dff7ec; color: var(--green); }
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+        .alert { display:none; margin-bottom: 16px; padding: 12px 14px; border-radius: 6px; background: #edf2fb; color: var(--blue); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 11px 9px; border-bottom: 1px solid var(--line); text-align: left; }
+        th { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+        @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<header><a href="index.html">Inicio</a><h1>Gestion de usuarios</h1></header>
+<main>
+    <div id="alerta" class="alert"></div>
+    <section class="card">
+        <h2 id="titulo-form">Registrar usuario</h2>
+        <input type="hidden" id="usuarioId">
+        <div class="grid">
+            <div><label for="nombre">Nombre completo</label><input id="nombre" placeholder="Carlos Gomez"></div>
+            <div><label for="correo">Correo</label><input id="correo" type="email" placeholder="carlos@universidad.edu.co"></div>
+            <div><label for="telefono">Telefono</label><input id="telefono" placeholder="3001234567"></div>
+        </div>
+        <div class="actions">
+            <button class="primary" onclick="guardar()">Guardar</button>
+            <button class="secondary" onclick="limpiar()">Cancelar</button>
+        </div>
+    </section>
+    <section class="card">
+        <h2>Usuarios registrados</h2>
+        <table>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Telefono</th><th>Acciones</th></tr></thead>
+            <tbody id="tabla"><tr><td colspan="5">Cargando...</td></tr></tbody>
+        </table>
+    </section>
+</main>
+<script>
+const API = "http://localhost:8080";
+
+async function cargarUsuarios() {
+    try {
+        const res = await axios.get(`${API}/usuarios`);
+        tabla.innerHTML = res.data.length ? res.data.map(u => `
+            <tr>
+                <td>${u.id}</td><td>${u.nombre}</td><td>${u.correo}</td><td>${u.telefono || "-"}</td>
+                <td><button class="success" onclick='editar(${JSON.stringify(u)})'>Editar</button> <button class="danger" onclick="eliminar(${u.id})">Eliminar</button></td>
+            </tr>`).join("") : '<tr><td colspan="5">No hay usuarios registrados.</td></tr>';
+    } catch (error) {
+        tabla.innerHTML = '<tr><td colspan="5">No se pudo conectar con el backend.</td></tr>';
+    }
+}
+
+async function guardar() {
+    const id = usuarioId.value;
+    const payload = { nombre: nombre.value.trim(), correo: correo.value.trim(), telefono: telefono.value.trim() };
+    if (!payload.nombre || !payload.correo) return mostrar("Nombre y correo son obligatorios.");
+    try {
+        if (id) await axios.put(`${API}/usuarios/${id}`, payload);
+        else await axios.post(`${API}/usuarios`, payload);
+        mostrar("Usuario guardado correctamente.");
+        limpiar();
+        cargarUsuarios();
+    } catch (error) { mostrar(error.response?.data?.error || "Error al guardar."); }
+}
+
+function editar(u) {
+    usuarioId.value = u.id; nombre.value = u.nombre; correo.value = u.correo; telefono.value = u.telefono || "";
+    document.getElementById("titulo-form").textContent = "Editar usuario";
+    scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function limpiar() {
+    usuarioId.value = ""; nombre.value = ""; correo.value = ""; telefono.value = "";
+    document.getElementById("titulo-form").textContent = "Registrar usuario";
+}
+
+async function eliminar(id) {
+    if (!confirm("Seguro que deseas eliminar este usuario?")) return;
+    try { await axios.delete(`${API}/usuarios/${id}`); mostrar("Usuario eliminado."); cargarUsuarios(); }
+    catch (error) { mostrar(error.response?.data?.error || "Error al eliminar."); }
+}
+
+function mostrar(msg) {
+    alerta.textContent = msg; alerta.style.display = "block";
+    setTimeout(() => alerta.style.display = "none", 3500);
+}
+cargarUsuarios();
+</script>
+</body>
+</html>

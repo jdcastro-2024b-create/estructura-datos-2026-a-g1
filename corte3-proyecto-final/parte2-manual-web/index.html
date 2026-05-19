@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Web - Estructuras de Datos</title>
+    <style>
+        :root {
+            --ink:#162033; --muted:#637083; --blue:#2457c5; --green:#0f8f63; --amber:#b7791f;
+            --red:#c92a2a; --paper:#ffffff; --bg:#f4f7fb; --line:#d9e1ee;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; color: var(--ink); background: var(--bg); }
+        header { position: sticky; top: 0; z-index: 5; background: var(--paper); border-bottom: 1px solid var(--line); }
+        .nav { max-width: 1180px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+        .nav strong { color: var(--blue); }
+        .nav a { color: var(--muted); text-decoration: none; font-size: .92rem; margin-left: 12px; }
+        .nav a:hover { color: var(--blue); }
+        main { max-width: 1180px; margin: 0 auto; padding: 30px 20px 52px; }
+        .hero { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 34px; display: grid; grid-template-columns: 1.2fr .8fr; gap: 26px; }
+        h1 { font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.05; margin: 0 0 14px; }
+        h2 { margin: 0 0 14px; font-size: 1.45rem; }
+        h3 { margin: 0 0 10px; font-size: 1.05rem; }
+        p { color: var(--muted); line-height: 1.55; }
+        .pill { display: inline-block; background: #e8f0ff; color: var(--blue); border-radius: 6px; padding: 6px 10px; font-weight: 700; font-size: .82rem; margin-bottom: 16px; }
+        .hero-visual { min-height: 260px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-content: center; }
+        .block { border: 1px solid var(--line); border-radius: 8px; padding: 14px; background: #f9fbff; min-height: 70px; }
+        .block b { display: block; color: var(--blue); }
+        .section { margin-top: 24px; }
+        .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+        .card { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 20px; }
+        .card code, pre { background: #f0f4fb; border: 1px solid var(--line); border-radius: 6px; }
+        pre { overflow: auto; padding: 14px; color: #24324a; }
+        table { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+        th { background: #eef4ff; color: var(--blue); font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; }
+        .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        .step { background: var(--paper); border-left: 4px solid var(--blue); border-radius: 8px; padding: 18px; }
+        .note { background: #fff8e6; border: 1px solid #f0d08a; border-radius: 8px; padding: 18px; }
+        @media (max-width: 900px) { .hero, .cards, .timeline { grid-template-columns: 1fr; } .nav { align-items: flex-start; flex-direction: column; } .nav a { margin: 0 10px 0 0; } }
+    </style>
+</head>
+<body>
+<header>
+    <div class="nav">
+        <strong>Manual Web de Estructuras de Datos</strong>
+        <nav>
+            <a href="#conceptos">Conceptos</a>
+            <a href="#estructuras">Estructuras</a>
+            <a href="#complejidad">Complejidad</a>
+            <a href="#proyecto">Proyecto</a>
+        </nav>
+    </div>
+</header>
+<main>
+    <section class="hero">
+        <div>
+            <span class="pill">Corte 3 - Parte 2</span>
+            <h1>Guia practica para elegir estructuras de datos</h1>
+            <p>Este manual resume los temas trabajados durante el semestre y los conecta con el sistema de turnos desarrollado en la Parte 1. Su objetivo es explicar cuando usar arrays, listas, pilas, colas, hash, arboles, AVL y grafos.</p>
+            <p>Una estructura de datos no se escoge por gusto: se escoge segun el tipo de acceso, busqueda, insercion, eliminacion, recorrido y relacion entre los datos.</p>
+        </div>
+        <div class="hero-visual" aria-label="Mapa de estructuras">
+            <div class="block"><b>Array</b><span>Acceso directo</span></div>
+            <div class="block"><b>Lista</b><span>Insercion flexible</span></div>
+            <div class="block"><b>Stack</b><span>LIFO</span></div>
+            <div class="block"><b>Queue</b><span>FIFO</span></div>
+            <div class="block"><b>Hash</b><span>Busqueda rapida</span></div>
+            <div class="block"><b>Arbol</b><span>Jerarquia</span></div>
+            <div class="block"><b>AVL</b><span>Balanceo</span></div>
+            <div class="block"><b>Grafo</b><span>Relaciones</span></div>
+            <div class="block"><b>Big O</b><span>Eficiencia</span></div>
+        </div>
+    </section>
+
+    <section id="conceptos" class="section">
+        <h2>Conceptos base</h2>
+        <div class="cards">
+            <article class="card"><h3>Dato</h3><p>Valor almacenado y procesado por un programa: numeros, cadenas, fechas, objetos o registros completos.</p></article>
+            <article class="card"><h3>Operacion</h3><p>Accion sobre los datos: insertar, eliminar, buscar, actualizar, ordenar o recorrer.</p></article>
+            <article class="card"><h3>Complejidad</h3><p>Medida aproximada del costo temporal o espacial de un algoritmo cuando crece el tamano de entrada.</p></article>
+        </div>
+    </section>
+
+    <section id="estructuras" class="section">
+        <h2>Estructuras principales</h2>
+        <table>
+            <thead><tr><th>Estructura</th><th>Idea clave</th><th>Uso recomendado</th><th>Ejemplo real</th></tr></thead>
+            <tbody>
+                <tr><td>Array</td><td>Datos contiguos con indice.</td><td>Acceso rapido por posicion.</td><td>Notas de estudiantes por periodo.</td></tr>
+                <tr><td>Lista enlazada</td><td>Nodos conectados por referencias.</td><td>Inserciones y eliminaciones frecuentes.</td><td>Lista de reproduccion editable.</td></tr>
+                <tr><td>Pila</td><td>Ultimo en entrar, primero en salir.</td><td>Deshacer acciones, historial, validacion.</td><td>Boton deshacer en un editor.</td></tr>
+                <tr><td>Cola</td><td>Primero en entrar, primero en salir.</td><td>Atencion por orden de llegada.</td><td>Sistema de turnos universitario.</td></tr>
+                <tr><td>Tabla hash</td><td>Clave asociada a valor.</td><td>Busqueda promedio muy rapida.</td><td>Buscar usuario por correo.</td></tr>
+                <tr><td>BST</td><td>Arbol ordenado.</td><td>Busqueda, insercion y recorrido ordenado.</td><td>Catalogo ordenado por codigo.</td></tr>
+                <tr><td>AVL</td><td>BST autobalanceado.</td><td>Evitar degradacion por datos desordenados.</td><td>Indice de productos en crecimiento.</td></tr>
+                <tr><td>Grafo</td><td>Nodos y aristas.</td><td>Modelar rutas, redes o dependencias.</td><td>Rutas entre sedes o salones.</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section id="complejidad" class="section">
+        <h2>Complejidad algoritimica</h2>
+        <div class="cards">
+            <article class="card"><h3>O(1)</h3><p>Tiempo constante. Ejemplo: consultar el frente de una cola conceptual.</p></article>
+            <article class="card"><h3>O(log n)</h3><p>Reduce el problema por mitades. Ejemplo: busqueda en arbol balanceado.</p></article>
+            <article class="card"><h3>O(n)</h3><p>Recorre todos los elementos. Ejemplo: cancelar un turno que puede estar en cualquier posicion.</p></article>
+            <article class="card"><h3>O(n log n)</h3><p>Comun en ordenamientos eficientes y consultas ordenadas.</p></article>
+            <article class="card"><h3>O(n^2)</h3><p>Comparaciones dobles. Debe evitarse con muchos datos.</p></article>
+            <article class="card"><h3>Espacial</h3><p>Memoria adicional usada por la estructura o algoritmo.</p></article>
+        </div>
+    </section>
+
+    <section id="proyecto" class="section">
+        <h2>Aplicacion al proyecto</h2>
+        <div class="timeline">
+            <div class="step"><h3>1. Problema</h3><p>La oficina necesita atender estudiantes por orden de llegada y conservar evidencia de cada turno.</p></div>
+            <div class="step"><h3>2. Estructura</h3><p>Se eligio una cola FIFO porque representa naturalmente el flujo de atencion.</p></div>
+            <div class="step"><h3>3. Implementacion</h3><p>Spring Boot expone endpoints REST y MySQL conserva usuarios, turnos y estados.</p></div>
+            <div class="step"><h3>4. Evaluacion</h3><p>Se prueban enqueue, peek, dequeue, cancelacion, estados y casos limite.</p></div>
+        </div>
+        <div class="note" style="margin-top:18px">
+            <strong>Conclusion:</strong> La cola resuelve el problema principal con bajo costo operativo y una logica facil de sustentar. Si el sistema creciera, se podrian agregar tabla hash para busquedas por codigo, arbol AVL para ordenamientos avanzados y grafos para rutas de atencion entre dependencias.
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Pseudocodigo de la cola</h2>
+        <pre><code>encolar(usuario):
+    si usuario tiene turno activo:
+        rechazar solicitud
+    turno = crear turno PENDIENTE
+    insertar turno al final
+
+llamarSiguiente():
+    si cola esta vacia:
+        informar error
+    turno = obtener frente
+    turno.estado = EN_ATENCION
+    guardar cambio
+
+completar(turno):
+    si turno.estado != EN_ATENCION:
+        informar error
+    turno.estado = ATENDIDO</code></pre>
+    </section>
+</main>
+</body>
+</html>
